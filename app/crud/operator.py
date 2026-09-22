@@ -56,7 +56,7 @@ def update_operator(
 
 def get_operator_active_contacts_count(db: Session, operator_id: int) -> int:
     """
-    Нагрузка оператора = количество открытых обращений (status = 'open')
+    An operator's workload is the number of open contacts.
     """
     stmt = (
         select(func.count(Contact.id))
@@ -70,7 +70,7 @@ def get_operator_active_contacts_count(db: Session, operator_id: int) -> int:
 
 def get_operator_stats_rows(db: Session) -> List[Tuple[int, str, int, int]]:
     """
-    Возвращает сырые строки статистики по операторам:
+    Return raw operator statistics rows:
     (operator_id, operator_name, total_contacts, open_contacts)
     """
     total_contacts_subq = (

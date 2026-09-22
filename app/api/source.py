@@ -74,23 +74,23 @@ def set_source_operators(
     if source is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Источник не найден!",
+            detail="Source not found",
         )
 
-    # проверяем операторов
+    # Verify that every configured operator exists.
     for item in data.operators:
         op = crud.get_operator(db, item.operator_id)
         if op is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Оператор {item.operator_id} не найден!",
+                detail=f"Operator {item.operator_id} not found",
             )
 
     weights = [(item.operator_id, item.weight) for item in data.operators]
     source = crud.set_source_operator_weights(db, source, weights=weights)
     db.commit()
     db.refresh(source)
-    # подгрузим связи заново
+    # Reload the source and its relationships.
     source = crud.get_source(db, source_id) or source
     return _build_source_with_operators(source)
 
@@ -108,7 +108,7 @@ def update_source(
     if source is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Источник не найден!",
+            detail="Source not found",
         )
 
     source = crud.update_source(

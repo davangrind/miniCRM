@@ -21,14 +21,15 @@ def _choose_operator_weighted(
     candidates: Sequence[Tuple[Operator, int]],
 ) -> Optional[Operator]:
     """
-    Взвешенный случайный выбор оператора
-    candidates: список кортежей (operator, weight)
+    Choose an operator at random using the configured weights.
+
+    candidates: a sequence of (operator, weight) tuples
     """
     if not candidates:
         return None
 
     operators, weights = zip(*candidates)
-    # стандартный взвешенный рандом из stdlib
+    # Use the weighted random implementation from the standard library.
     chosen = random.choices(list(operators), weights=list(weights), k=1)[0]
     return chosen
 
@@ -39,19 +40,19 @@ def assign_operator_for_source(
     source_id: int,
 ) -> Optional[Operator]:
     """
-    Выбор оператора для данного источника с учетом:
-      активности оператора (is_active)
-      не превышенного лимита нагрузки (max_active_contacts)
-      весов для источника
+    Choose an operator for a source based on:
+      operator availability (is_active)
+      the active-contact limit (max_active_contacts)
+      source-specific weights
 
-    Если подходящих операторов нет возвращает None
+    Return None when no operator is eligible.
     """
     weights = get_weights_for_source(db, source_id=source_id)
 
     candidates: List[Tuple[Operator, int]] = []
 
     for w in weights:
-        operator = w.operator  # lazy-load, но операторов мало, это ок
+        operator = w.operator  # Lazy loading is acceptable for this small set.
         if operator is None:
             continue
 
@@ -60,7 +61,7 @@ def assign_operator_for_source(
 
         active_count = get_operator_active_contacts_count(db, operator.id)
         if active_count >= operator.max_active_contacts:
-            # оператор перегружен
+            # The operator has reached the configured workload limit.
             continue
 
         candidates.append((operator, w.weight))
@@ -76,30 +77,29 @@ def register_contact(
     data: ContactCreate,
 ) -> Contact:
     """
-    Высокоуровневая операция регистрации обращения:
+    Register an incoming contact:
 
-    1) Найти или создать лида по external_lead_id
-    2) Проверить, что источник существует
-    3) Подобрать оператора по правилам
-    4) Создать обращение
+    1) Find or create a lead by external_lead_id.
+    2) Verify that the source exists.
+    3) Select an operator according to the assignment rules.
+    4) Create the contact.
 
-    ВАЖНО: если подходящих операторов нет, мы создаём обращение
-    с operator_id = None (без оператора)
+    If no operator is eligible, create the contact with operator_id = None.
     """
-    # 1. Лид
+    # 1. Lead
     lead = get_or_create_lead(db, external_id=data.external_lead_id)
 
-    # 2. Источник
+    # 2. Source
     source = get_source(db, data.source_id)
     if source is None:
-        # В API преобразуем это в HTTPException(404)
+        # The API layer converts this into an HTTP 404 response.
         raise ValueError(f"Source {data.source_id} not found")
 
-    # 3. Подбор оператора
+    # 3. Operator assignment
     operator = assign_operator_for_source(db, source_id=source.id)
     operator_id: Optional[int] = operator.id if operator is not None else None
 
-    # 4. Создание обращения
+    # 4. Contact creation
     contact = create_contact(
         db,
         lead_id=lead.id,

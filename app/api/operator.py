@@ -61,7 +61,7 @@ def update_operator(
     if operator is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Оператор не найден!",
+            detail="Operator not found",
         )
 
     operator = crud.update_operator(

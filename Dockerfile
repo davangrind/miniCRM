@@ -6,13 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/root/.local/bin:${PATH}" \
     UV_PROJECT_ENVIRONMENT=/opt/venv
 
-# только curl для установки uv
+# curl is only needed to install uv
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# создаем системный venv и делаем его активным
+# Create and activate the application virtual environment
 RUN python -m venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 
 def test_basic_lead_distribution_flow(client: TestClient):
-    # 1. Создаём оператора
+    # 1. Create an operator.
     op_resp = client.post(
         "/api/operators/",
         json={
@@ -16,7 +16,7 @@ def test_basic_lead_distribution_flow(client: TestClient):
     operator = op_resp.json()
     operator_id = operator["id"]
 
-    # 2. Создаём источник
+    # 2. Create a source.
     src_resp = client.post(
         "/api/sources/",
         json={
@@ -28,7 +28,7 @@ def test_basic_lead_distribution_flow(client: TestClient):
     source = src_resp.json()
     source_id = source["id"]
 
-    # 3. Настраиваем веса для источника
+    # 3. Configure source-specific operator weights.
     weights_resp = client.put(
         f"/api/sources/{source_id}/operators",
         json={
@@ -43,7 +43,7 @@ def test_basic_lead_distribution_flow(client: TestClient):
     assert len(body["operators"]) == 1
     assert body["operators"][0]["operator_id"] == operator_id
 
-    # 4. Создаём обращение
+    # 4. Create a contact.
     contact_resp = client.post(
         "/api/contacts/",
         json={
@@ -55,7 +55,7 @@ def test_basic_lead_distribution_flow(client: TestClient):
     assert contact_resp.status_code == 201
     contact = contact_resp.json()
 
-    # должна быть проставлена ссылка на оператора
+    # The contact must be assigned to the operator.
     assert contact["operator_id"] == operator_id
     assert contact["source_id"] == source_id
     assert contact["payload"] == "hello"
@@ -63,7 +63,7 @@ def test_basic_lead_distribution_flow(client: TestClient):
 
     lead_id = contact["lead_id"]
 
-    # 5. Проверяем, что лид существует и у него есть это обращение
+    # 5. Verify that the lead exists and owns the contact.
     lead_resp = client.get(f"/api/leads/{lead_id}")
     assert lead_resp.status_code == 200
     lead = lead_resp.json()

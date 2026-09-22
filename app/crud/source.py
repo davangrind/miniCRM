@@ -52,8 +52,7 @@ def set_source_operator_weights(
     weights: Iterable[Tuple[int, int]],
 ) -> Source:
     """
-    Полностью переопределяет конфигурацию операторов и их весов
-    для данного источника
+    Replace the complete operator and weight configuration for a source.
     """
     db.execute(
         delete(OperatorSourceWeight).where(

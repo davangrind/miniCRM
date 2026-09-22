@@ -50,7 +50,7 @@ def db(TestingSessionLocal) -> Generator[Session, None, None]:
 @pytest.fixture()
 def client(db: Session) -> Generator[TestClient, None, None]:
     """
-    Подменяем зависимость get_db на тестовую сессию
+    Override the get_db dependency with the test session.
     """
     def override_get_db():
         yield db

@@ -21,14 +21,12 @@ def create_contact_endpoint(
     db: Session = Depends(get_db),
 ) -> ContactOut:
     """
-    Регистрация обращения
+    Register an incoming contact.
 
-    Внутри:
-      найти/создать лида по external_lead_id
-      подобрать оператора по правилам
-      создать обращение
+    The service finds or creates the lead by external_lead_id, assigns an
+    operator according to the configured rules, and creates the contact.
 
-    Если подходящих операторов нет создаётся обращение без оператора
+    If no operator is eligible, the contact is created without an operator.
     """
     try:
         contact = register_contact(db, data)
